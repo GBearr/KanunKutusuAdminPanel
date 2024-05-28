@@ -1,33 +1,7 @@
 import supabase from "./supabaseClient";
 import Post from "../Models/postModel";
 
-export const postService = {
-  getNewPosts: async (p_page, p_viewer_id) => {
-    let { data, error } = await supabase.rpc("get_new_posts", {
-      p_page,
-      p_viewer_id,
-    });
-    if (error) {
-      console.error(error);
-      return [];
-    } else {
-      return data.map((item) => Post.fromJSON(item));
-    }
-  },
-
-  getPopularPosts: async (p_page, p_viewer_id) => {
-    let { data, error } = await supabase.rpc("get_popular_posts", {
-      p_page,
-      p_viewer_id,
-    });
-    if (error) {
-      console.error(error);
-      return [];
-    } else {
-      return data.map((item) => Post.fromJSON(item));
-    }
-  },
-
+const postService = {
   getApprovedPosts: async (p_page, p_viewer_id) => {
     let { data, error } = await supabase.rpc("get_approved_posts", {
       p_page,
@@ -123,21 +97,6 @@ export const postService = {
     }
   },
 
-  createPost: async ({ p_user_id, p_title, p_content, p_image_url }) => {
-    let { data, error } = await supabase.rpc("insert_post", {
-      p_user_id,
-      p_title,
-      p_content,
-      p_image_url,
-    });
-    if (error) {
-      console.error("Fonksiyon çağrısı hatası:", error);
-      return [];
-    } else {
-      return data;
-    }
-  },
-
   searchPosts: async (p_viewer_id, search_text) => {
     let { data, error } = await supabase.rpc("search_posts", {
       p_viewer_id,
@@ -151,17 +110,41 @@ export const postService = {
     }
   },
 
-  support: async (p_user_id, p_post_id) => {
-    let { data, error } = await supabase.rpc("support", {
-      p_user_id,
+  approvePost: async (p_post_id) => {
+    let { data, error } = await supabase.rpc("approve", {
       p_post_id,
     });
     if (error) {
       console.error(error);
       return [];
     } else {
-      console.log(data);
-      return data;
+      return Post.fromJSON(data[0]);
+    }
+  },
+
+  rejectPost: async (p_post_id) => {
+    let { data, error } = await supabase.rpc("reject", {
+      p_post_id,
+    });
+    if (error) {
+      console.error(error);
+      return [];
+    } else {
+      return Post.fromJSON(data[0]);
+    }
+  },
+
+  deletePost: async (p_post_id) => {
+    let { data, error } = await supabase.rpc("delete_post", {
+      p_post_id,
+    });
+    if (error) {
+      console.error(error);
+      return [];
+    } else {
+      return Post.fromJSON(data[0]);
     }
   },
 };
+
+export default postService;

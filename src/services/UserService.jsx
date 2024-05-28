@@ -1,7 +1,7 @@
 import supabase from "./supabaseClient";
 import User from "../Models/userModel";
 
-export const userService = {
+const userService = {
   getUsers: async (p_user_id) => {
     let { data, error } = await supabase.rpc("get_user", {
       p_user_id,
@@ -21,4 +21,18 @@ export const userService = {
       return data.map((item) => User.fromJSON(item));
     }
   },
+
+  deleteUser: async (p_user_id) => {
+    let { data, error } = await supabase.rpc("delete_user", {
+      p_user_id,
+    });
+    if (error) {
+      console.error(error);
+      return [];
+    } else {
+      return User.fromJSON(data[0]);
+    }
+  },
 };
+
+export default userService;

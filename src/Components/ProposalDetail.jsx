@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -8,32 +8,21 @@ import {
   Container,
   CardHeader,
   Avatar,
-  IconButton,
   CircularProgress,
   Box,
-  TextField,
   Divider,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  InputAdornment,
+  Button,
+  Stack,
 } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import { commentService } from "../services/CommentService";
+import AppBarComponent from "./AppBarComponent";
+import postService from "../services/PostService";
+import userService from "../services/UserService";
 
 export const ProposalDetail = () => {
   const { state } = useLocation();
-  const [comments, setComments] = useState([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
   const card = state;
   const navigate = useNavigate();
-  const [comment, setComment] = useState("");
   const [user, setUser] = useState(null);
-  const observer = useRef();
-  const lastCommentElementRef = useRef();
 
   // Session storage'dan kullanıcı bilgilerini alma
   useEffect(() => {
@@ -44,67 +33,41 @@ export const ProposalDetail = () => {
   }, []);
 
   const handleUserProfileClick = (id) => {
-    navigate(`/profile/${id}`);
+    navigate(`/profiledetail/${id}`);
   };
 
-  const fetchComments = async (pageNum) => {
-    setLoading(true);
-    try {
-      const fetchedComments = await commentService.getCommentsofPost(
-        pageNum,
-        card.post.id
-      );
-      setComments((prevComments) => [...prevComments, ...fetchedComments]);
-      setHasMore(fetchedComments.length > 0);
-    } catch (error) {
-      console.error("Comment çekme hatası", error);
-      setHasMore(false);
-    }
-    setLoading(false);
-  };
-
-  const handleCommentSubmit = async () => {
-    if (comment.trim() === "") return;
-
-    try {
-      const newComment = await commentService.insertComment(
-        comment,
-        card.post.id,
-        user.id // Kullanıcı kimliğini ekliyoruz
-      );
-      if (newComment) {
-        setComments((prevComments) => [newComment, ...prevComments]);
-        setComment("");
+  const handleApprove = async () => {
+    if (window.confirm("Bu teklifi onaylamak istediğinizden emin misiniz?")) {
+      try {
+        await postService.approvePost(card.post.id);
+        alert("Teklif onaylandı.");
+      } catch (error) {
+        alert(`Onaylama hatası: ${error.message}`);
       }
-    } catch (error) {
-      console.error("Yorum gönderme hatası", error);
     }
   };
 
-  useEffect(() => {
-    if (card) {
-      fetchComments(page);
-    }
-  }, [card, page]);
-
-  // useEffect(() => {
-  //   if (!card) {
-  //     navigate("/"); // Veya istediğiniz başka bir rota
-  //   }
-  // }, [card, navigate]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (observer.current) observer.current.disconnect();
-    observer.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage((prevPage) => prevPage + 1);
+  const handleReject = async () => {
+    if (window.confirm("Bu teklifi reddetmek istediğinizden emin misiniz?")) {
+      try {
+        await postService.rejectPost(card.post.id);
+        alert("Teklif reddedildi.");
+      } catch (error) {
+        alert(`Reddetme hatası: ${error.message}`);
       }
-    });
-    if (lastCommentElementRef.current) {
-      observer.current.observe(lastCommentElementRef.current);
     }
-  }, [loading, hasMore]);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Bu teklifi silmek istediğinizden emin misiniz?")) {
+      try {
+        await postService.deletePost(card.post.id);
+        alert("Teklif silindi.");
+      } catch (error) {
+        alert(`Silme hatası: ${error.message}`);
+      }
+    }
+  };
 
   if (!card) {
     return (
@@ -113,9 +76,21 @@ export const ProposalDetail = () => {
       </Box>
     );
   }
+  console.log(card.post);
 
   return (
     <Container>
+      <AppBarComponent
+        user={user}
+        pages={["Products", "Pricing", "Blog"]}
+        settings={["Profile", "Account", "Dashboard", "Logout"]}
+        handleOpenNavMenu={() => {}}
+        handleCloseNavMenu={() => {}}
+        handleOpenUserMenu={() => {}}
+        handleCloseUserMenu={() => {}}
+        anchorElNav={null}
+        anchorElUser={null}
+      />
       <Card sx={{ maxWidth: "100%", mt: 4 }}>
         <CardHeader
           avatar={
@@ -140,56 +115,37 @@ export const ProposalDetail = () => {
             {card.post.content}
           </Typography>
           <Divider sx={{ my: 2 }} />
-          <Typography variant="h6">Yorumlar</Typography>
-          <List>
-            {comments.map((comment, index) => (
-              <ListItem
-                key={index}
-                alignItems="flex-start"
-                ref={
-                  comments.length === index + 1 ? lastCommentElementRef : null
-                }
-              >
-                <ListItemAvatar
-                  onClick={() => handleUserProfileClick(comment.userId)}
+          <Stack direction="row" spacing={2}>
+            {card.post.state == "pending" ? (
+              <>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleApprove}
                 >
-                  {comment.profileImageURL ? (
-                    <Avatar src={comment.profileImageURL} />
-                  ) : (
-                    <Avatar />
-                  )}
-                </ListItemAvatar>
-                <ListItemText
-                  primary={comment.user_name}
-                  secondary={comment.content}
-                />
-              </ListItem>
-            ))}
-          </List>
-          {loading && (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-              <CircularProgress />
-            </Box>
-          )}
-          <TextField
-            label="Yorumunuzu yazın"
-            multiline
-            rows={1}
-            value={comment}
-            fullWidth
-            sx={{ mt: 2 }}
-            variant="outlined"
-            onChange={(e) => setComment(e.target.value)}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton aria-label="send" onClick={handleCommentSubmit}>
-                    <SendIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
+                  Onayla
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleReject}
+                >
+                  Reddet
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleDelete}
+                >
+                  Sil
+                </Button>
+              </>
+            ) : card.post.state == "approved" || "rejected" ? (
+              <Button variant="contained" color="error" onClick={handleDelete}>
+                Sil
+              </Button>
+            ) : null}
+          </Stack>
         </CardContent>
       </Card>
     </Container>
