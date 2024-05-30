@@ -13,7 +13,8 @@ class Post {
     supportCount,
     isSupported,
     state,
-    timesAgo
+    timesAgo,
+    getDate
   ) {
     this.id = id;
     this.userId = userId;
@@ -27,11 +28,13 @@ class Post {
     this.isSupported = isSupported;
     this.state = state;
     this.timesAgo = timesAgo;
+    this.getDate = getDate;
   }
 
   static fromJSON(map) {
     const createdAt = new Date(map.created_at);
     const timesAgo = DateFormatter.formatDateDifference(createdAt);
+    const getDate = DateFormatter.formatDate(createdAt);
     return new Post(
       map.id,
       map.user_id,
@@ -44,7 +47,8 @@ class Post {
       map.support_count,
       map.is_supported,
       map.state,
-      timesAgo
+      timesAgo,
+      getDate
     );
   }
 

@@ -17,6 +17,8 @@ import {
 import AppBarComponent from "./AppBarComponent";
 import postService from "../services/PostService";
 import userService from "../services/UserService";
+import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
+import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 
 export const ProposalDetail = () => {
   const { state } = useLocation();
@@ -82,13 +84,8 @@ export const ProposalDetail = () => {
     <Container>
       <AppBarComponent
         user={user}
-        pages={["Products", "Pricing", "Blog"]}
-        settings={["Profile", "Account", "Dashboard", "Logout"]}
-        handleOpenNavMenu={() => {}}
-        handleCloseNavMenu={() => {}}
         handleOpenUserMenu={() => {}}
         handleCloseUserMenu={() => {}}
-        anchorElNav={null}
         anchorElUser={null}
       />
       <Card sx={{ maxWidth: "100%", mt: 4 }}>
@@ -101,9 +98,14 @@ export const ProposalDetail = () => {
             />
           }
           title={
-            <Typography gutterBottom variant="h5" component="div">
-              {card.post.title}
-            </Typography>
+            <>
+              <Typography gutterBottom variant="h5" component="div">
+                {card.post.title}
+              </Typography>
+              <Typography gutterBottom variant="subtitle1" component="div">
+                {card.post.getDate}
+              </Typography>
+            </>
           }
           subheader={card.post.date}
         />
@@ -114,39 +116,64 @@ export const ProposalDetail = () => {
           <Typography variant="body1" color="text.secondary">
             {card.post.content}
           </Typography>
-          <Divider sx={{ my: 2 }} />
-          <Stack direction="row" spacing={2}>
-            {card.post.state == "pending" ? (
-              <>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleApprove}
-                >
-                  Onayla
-                </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={handleReject}
-                >
-                  Reddet
-                </Button>
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={handleDelete}
-                >
-                  Sil
-                </Button>
-              </>
-            ) : card.post.state == "approved" || "rejected" ? (
+          <Stack direction="row" sx={{ mt: 1 }} spacing={2}>
+            <Button
+              disableRipple
+              sx={{
+                cursor: "default",
+                "&:hover": { backgroundColor: "transparent" },
+              }}
+              color="inherit"
+            >
+              <ThumbUpAltOutlinedIcon sx={{ mr: 1 }} /> {card.post.supportCount}
+            </Button>
+            <Button
+              disableRipple
+              sx={{
+                cursor: "default",
+                "&:hover": { backgroundColor: "transparent" },
+              }}
+              color="inherit"
+            >
+              <ModeCommentOutlinedIcon sx={{ mr: 1 }} />{" "}
+              {card.post.commentCount}
+            </Button>
+          </Stack>
+        </CardContent>
+        <Divider />
+
+        {card.post.state === "pending" && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleApprove}
+              >
+                Onayla
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleReject}
+              >
+                Reddet
+              </Button>
               <Button variant="contained" color="error" onClick={handleDelete}>
                 Sil
               </Button>
-            ) : null}
-          </Stack>
-        </CardContent>
+            </Stack>
+          </Box>
+        )}
+        {(card.post.state === "approved" ||
+          card.post.state === "rejected" ||
+          card.post.state === "none") && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
+            <Button variant="contained" color="error" onClick={handleDelete}>
+              Sil
+            </Button>
+          </Box>
+        )}
       </Card>
     </Container>
   );

@@ -1,21 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import postService from "../services/PostService";
 import {
-  AppBar,
   Box,
-  Toolbar,
-  Typography,
-  Button,
-  IconButton,
   Container,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Avatar,
   Tab,
-  Grid,
   CircularProgress,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -35,23 +24,12 @@ const AdminPanel = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [tabValue, setTabValue] = useState(0);
-  const [anchorElNav, setAnchorElNav] = useState(null);
   const [anchorElUser, setAnchorElUser] = useState(null);
-
-  const pages = ["Products", "Pricing", "Blog"];
-  const settings = ["Profile", "Account", "Dashboard", "Logout"];
 
   const observer = useRef();
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
   };
 
   const handleCloseUserMenu = () => {
@@ -85,7 +63,7 @@ const AdminPanel = () => {
         }
       } catch (error) {
         console.error("Veri getirme hatası:", error);
-        setHasMore(false); // Hata durumunda daha fazla veri olmadığını varsayın
+        setHasMore(false);
       }
       setLoading(false);
     };
@@ -97,8 +75,8 @@ const AdminPanel = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-    setPage(1); // Sekme değiştirildiğinde sayfayı sıfırla
-    setProposals([]); // Sekme değiştirildiğinde mevcut veriyi temizle
+    setPage(1);
+    setProposals([]);
   };
 
   const lastProposalElementRef = useRef();
@@ -131,13 +109,8 @@ const AdminPanel = () => {
     <Container>
       <AppBarComponent
         user={user}
-        pages={pages}
-        settings={settings}
-        handleOpenNavMenu={handleOpenNavMenu}
-        handleCloseNavMenu={handleCloseNavMenu}
         handleOpenUserMenu={handleOpenUserMenu}
         handleCloseUserMenu={handleCloseUserMenu}
-        anchorElNav={anchorElNav}
         anchorElUser={anchorElUser}
       />
       <TabContext value={tabValue}>

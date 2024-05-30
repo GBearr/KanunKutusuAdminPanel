@@ -27,13 +27,22 @@ import { useNavigate } from "react-router-dom";
 
 const ProfileScreen = () => {
   const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [proposals, setProposals] = useState([]);
   const [tabValue, setTabValue] = useState(0);
   const lastProposalElementRef = useRef();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const storedUser = sessionStorage.getItem("currentUser");
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const { id } = useParams();
+  console.log("ID:", id);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -86,8 +95,15 @@ const ProfileScreen = () => {
     if (window.confirm("Bu kullanıcıyı silmek istediğinizden emin misiniz?")) {
       try {
         await userService.deleteUser(id);
-        alert("Teklif silindi.");
+        alert("Kullanıcı silindi.");
       } catch (error) {
+        const simpleError = {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+        };
+        console.log("handledelete:", id);
+        console.error("Silme hatası:", simpleError);
         alert(`Silme hatası: ${error.message}`);
       }
     }
@@ -104,14 +120,9 @@ const ProfileScreen = () => {
   return (
     <Container>
       <AppBarComponent
-        user={user}
-        pages={["Products", "Pricing", "Blog"]}
-        settings={["Profile", "Account", "Dashboard", "Logout"]}
-        handleOpenNavMenu={() => {}}
-        handleCloseNavMenu={() => {}}
+        user={currentUser}
         handleOpenUserMenu={() => {}}
         handleCloseUserMenu={() => {}}
-        anchorElNav={null}
         anchorElUser={null}
       />
       <Stack>
@@ -139,7 +150,7 @@ const ProfileScreen = () => {
                 {user.emailAddress}
               </Typography>
               <Button
-                onClick={handleDelete}
+                onClick={() => handleDelete(user.id)}
                 variant="contained"
                 color="error"
                 sx={{ position: "absolute", bottom: 16, right: 16 }}
@@ -186,12 +197,12 @@ const ProfileScreen = () => {
                     <TableCell>{item.commentCount}</TableCell>
                     <TableCell>{item.timesAgo}</TableCell>
                     <TableCell>
-                      {item.state == "pending"
+                      {item.state === "pending"
                         ? "Beklemede"
-                        : item.state == "approved"
+                        : item.state === "approved"
                         ? "Onaylandı"
-                        : item.state == "rejected"
-                        ? "Reddildi"
+                        : item.state === "rejected"
+                        ? "Reddedildi"
                         : "Paylaşımda"}
                     </TableCell>
                   </TableRow>
